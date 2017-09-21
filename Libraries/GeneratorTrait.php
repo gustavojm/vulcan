@@ -156,6 +156,30 @@ trait GeneratorTrait
         return $this->createFile($destination, $content, $overwrite);
     }
 
+    /**
+     * Attempts to locate a template within the current template group,
+     * parses it with the passed in data, and writes to the new location.
+     *
+     * @param       $template
+     * @param       $destination
+     * @param array $data
+     * @param bool  $overwrite
+     *
+     * @return $this
+     */
+    public function copyTemplateTPL($template, $destination, $data = [], $overwrite = false)
+    {
+        if (! is_array($data))
+        {
+            $data = [$data];
+        }
+
+        $content = $this->renderTPL($template, $data);
+
+        return $this->createFile($destination, $content, $overwrite);
+    }
+
+
     //--------------------------------------------------------------------
 
 
@@ -293,6 +317,44 @@ trait GeneratorTrait
         return $output;
     }
 
+        /**
+     * Renders a single generator template. The file must be in a folder
+     * under the template group named the same as $this->generator_name.
+     * The file must have a '.tpl.php' file extension.
+     *
+     * @param       $template_name
+     * @param array $data
+     *
+     * @return string The rendered template
+     */
+    public function renderTPL($template_name, $data = [], $folder = null)
+    {
+        $path         = realpath(__DIR__.'/../Views/').'/';
+        if (empty($this->parser))
+        {
+            $this->parser = new Parser(new \Config\View(), $path);
+        }
+
+        if (is_null($this->parser))
+        {
+            throw new \RuntimeException('Unable to create Parser instance.');
+        }
+
+        $view = $template_name . '.tpl';
+
+        $viewRender = new \CodeIgniter\View\View(new \Config\View(), $path);
+
+        $output = $viewRender->setData($data)->render($view);
+        
+        // To allow for including any PHP code in the templates,
+        // replace any '@php' and '@=' tags with their correct PHP syntax.
+        $output = str_replace('@php', '<?php', $output);
+        $output = str_replace('@=', '<?=', $output);
+
+        return $output;
+    }
+
+    
     //--------------------------------------------------------------------
 
     /**
