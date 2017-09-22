@@ -38,12 +38,18 @@ class MakeController extends BaseCommand
          * Controller name
          */
         $name = array_shift($params);
-
+               
         if (empty($name))
         {
             $name = CLI::prompt('Controller name');
         }
 
+        $name_array = explode('/', $name);
+        $name = array_pop($name_array);
+        
+        $folders = implode('/', $name_array);              
+        $folders = $folders != '' ? '/' . $folders  : '';                   
+        
         // Format to CI standards
         $name = ucfirst($name);
 
@@ -54,7 +60,7 @@ class MakeController extends BaseCommand
         $view = $crud == 'y'
             ? 'Controller/CRUDController'
             : 'Controller/SimpleController';
-
+        
         $data = [
             'namespace' => 'App\Controllers',
             'name'      => $name,
@@ -67,7 +73,7 @@ class MakeController extends BaseCommand
             $data = array_merge($data, $this->getCRUDOptions());
         }
 
-        $destination = $this->determineOutputPath('Controllers').$name.'.php';
+        $destination = $this->determineOutputPath('Controllers' . $folders).$name.'.php';
 
         $overwrite = (bool)CLI::getOption('f');
 
@@ -102,7 +108,7 @@ class MakeController extends BaseCommand
         if (empty($views))
         {
             $views = CLI::prompt('Generate views', ['y', 'n']);
-            $views = $views =='y'
+            $views = $views == 'y'
                 ? true
                 : false;
         }
